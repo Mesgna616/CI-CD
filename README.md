@@ -1,1 +1,1 @@
-# CI-CD
+Learning repository for Docker and Jenkins to build hands-on knowledge in CI/CD pipelines. Contains examples of running Jenkins in Docker, managing containers and volumes, and automating software build, test, and deployment processes. Ideal for beginners exploring DevOps concepts and continuous integration workflows.
