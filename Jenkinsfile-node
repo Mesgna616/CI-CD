@@ -1,0 +1,76 @@
+pipeline {
+    agent { label 'ubuntu' }
+    environment {
+        AGENT_WORKDIR = '/home/jenkins/agent'
+        NODE_FOLDER = 'node_hello_world'
+        NODE_PORT = 3000
+    }
+    stages {
+        stage('Install Node.js & npm (if missing)') {
+            steps {
+                sh '''
+                export PATH=$PATH:/usr/bin:/usr/local/bin
+
+                if ! command -v node >/dev/null 2>&1; then
+                    echo "Installing Node.js..."
+                    apt-get update -qq
+                    apt-get install -y --no-install-recommends curl gnupg build-essential
+                    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+                    apt-get install -y --no-install-recommends nodejs
+                else
+                    echo "Node.js already installed: $(node -v)"
+                fi
+
+                if ! command -v npm >/dev/null 2>&1; then
+                    apt-get install -y --no-install-recommends npm
+                fi
+
+                node -v
+                npm -v
+                '''
+            }
+        }
+
+        stage('Create Dedicated Folder & Server') {
+            steps {
+                sh '''
+                mkdir -p ${AGENT_WORKDIR}/${NODE_FOLDER}
+                cd ${AGENT_WORKDIR}/${NODE_FOLDER}
+
+                cat << EOF > server.js
+const http = require('http');
+
+const hostname = '0.0.0.0';
+const port = ${NODE_PORT};
+
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/html');
+  res.end('<h1>Hello World from Jenkins Agent using Node.js!</h1>');
+});
+
+server.listen(port, hostname, () => {
+  console.log("Server running at http://" + hostname + ":" + port + "/");
+});
+EOF
+                '''
+            }
+        }
+
+        stage('Start Node.js Server') {
+            steps {
+                sh '''
+                cd ${AGENT_WORKDIR}/${NODE_FOLDER}
+                export PATH=$PATH:/usr/bin:/usr/local/bin
+                nohup $(which node) server.js > server.log 2>&1 &
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            echo "✅ Node.js Hello World server is running in ${AGENT_WORKDIR}/${NODE_FOLDER} on port ${NODE_PORT}"
+        }
+    }
+}
