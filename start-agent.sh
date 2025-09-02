@@ -4,7 +4,7 @@ set -euo pipefail
 WORKDIR="/home/jenkins/agent"
 JENKINS_URL="http://my-jenkins:8080"
 AGENT_NAME="ubuntu-agent"
-AGENT_SECRET="3b1ed06b59a13b5b053fafbf4894b8337041a785f17dfe2b6feeb46df7a77dc7"
+AGENT_SECRET"${JENKINS_AGENT_SECRET}"
 
 apt-get update && apt-get install -y openjdk-17-jre-headless curl ca-certificates gnupg && rm -rf /var/lib/apt/lists/*
 mkdir -p "$WORKDIR"
